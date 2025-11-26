@@ -1,0 +1,104 @@
+<p-toast></p-toast>
+
+<p-toolbar styleClass="mb-6">
+    <ng-template #start>
+        <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+        <p-button severity="secondary" label="Delete" icon="pi pi-trash" outlined (onClick)="deleteSelectedElements()"
+            [disabled]="!selectedElements || !selectedElements.length" />
+    </ng-template>
+
+    <ng-template #end>
+        <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+</p-toolbar>
+
+<p-table
+    #dt
+    [value]="elements()"
+    [rows]="10"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['valor', 'notaid', 'estado', 'componentename', 'periodoname']"
+    [tableStyle]="{ 'min-width': '75rem' }" [(selection)]="selectedElements" [rowHover]="true" dataKey="notaid"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} {{pluralName.toLowerCase()}}" [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[10, 20, 30]"
+>
+    <ng-template #caption>
+        <div class="flex items-center justify-between">
+            <h5 class="m-0">{{elementAdminName}}</h5>
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." />
+            </p-iconfield>
+        </div>
+    </ng-template>
+    <ng-template #header>
+        <tr>
+            <th style="width: 3rem">
+                <p-tableHeaderCheckbox />
+            </th>
+            <th style="max-width: 5rem">ID</th>
+            <th pSortableColumn="valor">
+                Valor
+                <p-sortIcon field="valor" />
+            </th>
+            <th>Estado</th>
+            <th>Componente</th>            
+            <th>Periodo</th>            
+            <th style="min-width: 12rem"></th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-element>
+        <tr>
+            <td style="width: 3rem">
+                <p-tableCheckbox [value]="element" />
+            </td>
+            <td style="max-width: 5rem">{{ element.notaid }}</td>
+            <td style="min-width: 16rem">{{ element.valor }}</td>
+            <td style="min-width: 16rem">{{ element.estado }}</td>
+            <td style="min-width: 16rem">{{ element.componentename }}</td>
+            <td style="min-width: 16rem">{{ element.periodoname }}</td>
+            <td>
+                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true"
+                    (click)="editElement(element)" />
+                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                    (click)="deleteElement(element)" />
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+<p-dialog [(visible)]="dialog" [style]="{ width: '450px' }" header="Detalles de {{singularName}}" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-6 min-h-100">            
+            <div>
+                <label for="componente" class="block font-bold mb-3">Componente</label>
+                <p-select [filter]="true" filterBy="label" [(ngModel)]="element.componentenotaid" inputId="componente" [options]="componenteTypes"
+                    optionLabel="label" optionValue="value" placeholder="Selecciona una opción" fluid />
+                <small class="text-red-500" *ngIf="submitted && !element.componentenotaid">El componente es obligatorio.</small>
+            </div>
+            <div>
+                <label for="periodo" class="block font-bold mb-3">Periodo</label>
+                <p-select [filter]="true" filterBy="label"[(ngModel)]="element.periodoevaluacionid" inputId="periodo" [options]="periodos"
+                    optionLabel="label" optionValue="value" placeholder="Selecciona una opción" fluid />
+                <small class="text-red-500" *ngIf="submitted && !element.periodoevaluacionid">El periodo es obligatorio.</small>
+            </div>
+            <div>
+                <label for="estado" class="block font-bold mb-3">Estado</label>
+                <input pInputText type="text" id="estado" [(ngModel)]="element.estado" class="w-full p-inputtext p-component" />
+                <small class="text-red-500" *ngIf="submitted && !element.estado">El estado es obligatorio.</small>
+            </div>
+            <div>
+                <label for="valor" class="block font-bold mb-3">Valor</label>
+                <p-inputnumber [min]="0" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" type="text" id="valor" [(ngModel)]="element.valor" fluid />
+                <small class="text-red-500" *ngIf="submitted && !element.valor">El valor es obligatorio.</small>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+        <p-button label="Save" icon="pi pi-check" (click)="saveElement()" />
+    </ng-template>
+</p-dialog>
+
+<p-confirmdialog [style]="{ width: '450px' }" />

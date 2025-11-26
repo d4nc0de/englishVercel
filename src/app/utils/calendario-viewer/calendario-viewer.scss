@@ -1,0 +1,22 @@
+.tabla-cal {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.tabla-cal th,
+.tabla-cal td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  vertical-align: top;
+  width: 14.28%;
+}
+
+.bloque {
+  background: #e8f0ff;
+  border: 1px solid #9bbcff;
+  padding: 4px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}

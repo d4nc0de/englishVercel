@@ -1,0 +1,28 @@
+<table class="tabla-cal">
+  <thead>
+    <tr>
+      <th>Lun</th>
+      <th>Mar</th>
+      <th>Mie</th>
+      <th>Jue</th>
+      <th>Vie</th>
+      <th>Sab</th>
+      <th>Dom</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td *ngFor="let dia of dias">
+        <div class="bloque" *ngFor="let det of dia.detalles">
+          <div class="hora">
+            {{ det.hora_inicio }} - {{ det.hora_fin }}
+          </div>
+          <div class="unidades">
+            Equivale a: {{ det.unidades }} hora(s)
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

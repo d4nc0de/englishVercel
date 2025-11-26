@@ -1,0 +1,107 @@
+<p-toast></p-toast>
+
+<p-toolbar styleClass="mb-6">
+    <ng-template #start>
+        <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+        <p-button severity="secondary" label="Delete" icon="pi pi-trash" outlined (onClick)="deleteSelectedElements()"
+            [disabled]="!selectedElements || !selectedElements.length" />
+    </ng-template>
+
+    <ng-template #end>
+        <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+</p-toolbar>
+
+<div class="card">
+    <p-table
+        #dt
+        [value]="elements()"
+        [rows]="10"
+        [columns]="cols"
+        [paginator]="true"
+        [globalFilterFields]="['nombre', 'fecha_inicio', 'fecha_fin', 'orden', 'periodoevaluacionid']"
+        [tableStyle]="{ 'min-width': '75rem' }" [(selection)]="selectedElements" [rowHover]="true" dataKey="periodoevaluacionid"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} {{pluralName.toLowerCase()}}" [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 20, 30]"
+    >
+        <ng-template #caption>
+            <div class="flex items-center justify-between">
+                <h5 class="m-0">{{elementAdminName}}</h5>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." />
+                </p-iconfield>
+            </div>
+        </ng-template>
+        <ng-template #header>
+            <tr>
+                <th style="width: 3rem">
+                    <p-tableHeaderCheckbox />
+                </th>
+                <th style="max-width: 5rem">ID</th>
+                <th pSortableColumn="orden" style="max-width: 5rem">
+                    Orden
+                    <p-sortIcon field="orden" />
+                </th>
+                <th pSortableColumn="nombre">
+                    Nombre
+                    <p-sortIcon field="nombre" />
+                </th>
+                <th style="min-width: 16rem">Fecha Inicio</th>
+                <th style="min-width: 16rem">Fecha Fin</th>
+                <th style="min-width: 12rem"></th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-element>
+            <tr>
+                <td style="width: 3rem">
+                    <p-tableCheckbox [value]="element" />
+                </td>
+                <td style="max-width: 5rem">{{ element.periodoevaluacionid }}</td>
+                <td style="max-width: 5rem">{{ element.orden }}</td>
+                <td style="min-width: 16rem">{{ element.nombre }}</td>
+                <td style="min-width: 16rem">{{ element.fecha_inicio | date }}</td>
+                <td style="min-width: 16rem">{{ element.fecha_fin | date }}</td>
+                <td>
+                    <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true"
+                        (click)="editElement(element)" />
+                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                        (click)="deleteElement(element)" />
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+<p-dialog [(visible)]="dialog" [style]="{ width: '450px' }" header="Detalles de {{singularName}}" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-6 min-h-155 overflow-hidden">
+            <div>
+                <label for="nombre" class="block font-bold mb-3">Nombre</label>
+                <input pInputText type="text" id="nombre" [(ngModel)]="element.nombre" class="w-full" required />
+                <small class="text-red-500" *ngIf="submitted && !element.nombre">El nombre es obligatorio.</small>
+            </div>
+            <div>
+                <label for="fecha_inicio" class="block font-bold mb-3">Fecha Inicio</label>
+                <p-datepicker [(ngModel)]="element.fecha_inicio" fluid required />
+                <small class="text-red-500" *ngIf="submitted && !element.fecha_inicio">La fecha inicial es obligatoria.</small>
+            </div>        
+            <div>
+                <label for="fecha_fin" class="block font-bold mb-3">Fecha Fin</label>
+                <p-datepicker [(ngModel)]="element.fecha_fin" fluid required />
+                <small class="text-red-500" *ngIf="submitted && !element.fecha_fin">La fecha final es obligatoria.</small>
+            </div>
+            <div>
+                <label for="orden" class="block font-bold mb-3">Orden</label>
+                <p-inputnumber id="orden" [(ngModel)]="element.orden" class="w-full" required />
+                <small class="text-red-500" *ngIf="submitted && !element.orden">El orden es obligatorio.</small>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+        <p-button label="Save" icon="pi pi-check" (click)="saveElement()" />
+    </ng-template>
+</p-dialog>
+
+<p-confirmdialog [style]="{ width: '450px' }" />

@@ -1,0 +1,177 @@
+<p-toast></p-toast>
+
+<p-toolbar styleClass="mb-6">
+    <ng-template #start>
+        <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+        <p-button severity="secondary" label="Delete" icon="pi pi-trash" outlined (onClick)="deleteSelectedElements()"
+            [disabled]="!selectedElements || !selectedElements.length" />
+    </ng-template>
+
+    <ng-template #end>
+        <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+</p-toolbar>
+
+<div class="card">
+<p-table
+    #dt
+    [value]="elements()"
+    [rows]="10"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['nombre', 'sede_nombre', 'tutor_nombre']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedElements"
+    [rowHover]="true"
+    dataKey="aulaid"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} {{pluralName.toLowerCase()}}"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[10, 20, 30]"
+>
+    <ng-template #caption>
+        <div class="flex items-center justify-between">
+            <h5 class="m-0">{{elementAdminName}}</h5>
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." />
+            </p-iconfield>
+        </div>
+    </ng-template>
+    <ng-template #header>
+        <tr>
+            <th style="width: 3rem">
+                <p-tableHeaderCheckbox />
+            </th>
+            <th style="max-width: 5rem">ID</th>
+            <th style="max-width: 5rem">ID Jornada</th>
+            <th pSortableColumn="nombre" style="min-width:16rem">
+                Nombre
+                <p-sortIcon field="nombre" />
+            </th>
+            <th pSortableColumn="grado" style="max-width: 5rem">
+                Grado
+                <p-sortIcon field="grado" />
+            </th>
+            <th>Cupo máximo</th>
+            <th style="max-width: 5rem">Activa?</th>
+            <th pSortableColumn="sede_nombre" style="min-width:16rem">
+                Sede
+                <p-sortIcon field="sede_nombre" />
+            </th>
+            <th style="min-width:16rem">Programa</th>
+            <th style="min-width:16rem">Tutor</th>
+            <th style="min-width: 12rem"></th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-element>
+        <tr>
+            <td style="width: 3rem">
+                <p-tableCheckbox [value]="element" />
+            </td>
+            <td style="max-width: 5rem">{{ element.aulaid }}</td>
+            <td style="max-width: 5rem">{{ element.jornadaid }}</td>
+            <td style="min-width: 16rem">{{ element.nombre }}</td>
+            <td style="max-width: 5rem">{{ element.grado }}</td>
+            <td style="max-width: 5rem">{{ element.cupo_maximo }}</td>
+            <td style="max-width: 5rem">{{ humanBool(element.activo) }}</td>
+            <td style="min-width: 16rem">{{ element.sede_nombre }}</td>
+            <td style="min-width: 16rem">{{ programName(element.programaid) }}</td>
+            <td style="min-width: 16rem">{{ element.tutor_nombre }}</td>
+            <td>
+                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true"
+                    (click)="editElement(element)" />
+                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                    (click)="deleteElement(element)" />
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+</div>
+<p-dialog [(visible)]="dialog" [style]="{ width: '450px' }" header="Detalles de {{singularName}}" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-6 min-h-200 overflow-hidden">
+            <div>
+                <label for="sedeid" class="block font-bold mb-3">Sede</label>
+                <p-select [filter]="true" filterBy="name" [(ngModel)]="element.sedeid" inputId="sedeid" [options]="sedes" optionLabel="name" optionValue="sedeid" placeholder="Selecciona una sede" fluid />
+                <small class="text-red-500" *ngIf="submitted && !element.sedeid">La sede es obligatoria.</small>
+            </div>
+            <div>
+                <label for="tutorid" class="block font-bold mb-3">Tutor</label>
+                <p-select
+                    [filter]="true"
+                    filterBy="name"
+                    [(ngModel)]="element.tutorid" (ngModelChange)="onTutorChange($event)"
+                    inputId="tutorid"
+                    [options]="tutores"
+                    optionLabel="name" optionValue="tutorid" placeholder="Selecciona un tutor" 
+                    fluid
+                />
+                <small class="text-red-500" *ngIf="submitted && !element.tutorid">El tutor es obligatorio.</small>
+            </div>
+            <div>
+                <label for="nombre" class="block font-bold mb-3">Nombre</label>
+                <input type="text" pInputText id="nombre" [(ngModel)]="element.nombre" required autofocus fluid />
+                <small class="text-red-500" *ngIf="submitted && !element.nombre">El nombre es obligatorio.</small>
+            </div>
+            <div>
+                <span class="block font-bold mb-4">Grado</span>
+                <div class="grid grid-cols-12 gap-4">
+                    <div class="flex items-center gap-2 col-span-6">
+                        <p-radiobutton id="category1" name="category" value="4" [(ngModel)]="element.grado" />
+                        <label for="category1">4°</label>
+                    </div>
+                    <div class="flex items-center gap-2 col-span-6">
+                        <p-radiobutton id="category2" name="category" value="5" [(ngModel)]="element.grado" />
+                        <label for="category2">5°</label>
+                    </div>
+                    <div class="flex items-center gap-2 col-span-6">
+                        <p-radiobutton id="category3" name="category" value="10" [(ngModel)]="element.grado" />
+                        <label for="category3">10°</label>
+                    </div>
+                    <div class="flex items-center gap-2 col-span-6">
+                        <p-radiobutton id="category4" name="category" value="11" [(ngModel)]="element.grado" />
+                        <label for="category4">11°</label>
+                    </div>
+                </div>
+                <small class="text-red-500" *ngIf="submitted && !element.grado">El grado es obligatorio.</small>
+            </div>
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-6">
+                    <label for="jornadaid" class="block font-bold mb-3">Jornada asignada</label>
+                    <p-select
+                    [filter]="true"
+                    filterBy="name"
+                    [(ngModel)]="element.jornadaid"
+                    inputId="jornadaid"
+                    [options]="jornadas"
+                    optionLabel="name"
+                    optionValue="jornadaid"
+                    placeholder="Selecciona una jornada"
+                    fluid
+                    />
+                    <small class="text-red-500" *ngIf="submitted && !element.jornadaid">La jornada es obligatoria.</small>
+                </div>
+                <div class="col-span-6">
+                    <label for="cupo_maximo" class="block font-bold mb-3">Cupo máximo</label>
+                    <p-inputnumber [min]="0"[(ngModel)]="element.cupo_maximo" fluid />
+                </div>
+            </div>
+            <div>
+                <label for="activo" class="block font-bold mb-3">Activa?</label>
+                <p-toggleswitch  id="activo" [(ngModel)]="element.activo" binary="true"></p-toggleswitch>
+            </div>
+            <div>
+                <label for="tutorReason" class="block font-bold mb-3">Razón de cambio de tutor</label>
+                <input min="1" pInputText id="tutorReason" [(ngModel)]="tutorChangeReason" autofocus fluid [disabled]="!needTutorHistory" />
+                <small class="text-red-500" *ngIf="submitted && !tutorChangeReason && needTutorHistory">La razón de cambio de tutor es obligatoria.</small>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+        <p-button label="Save" icon="pi pi-check" (click)="saveElement()" />
+    </ng-template>
+</p-dialog>
+
+<p-confirmdialog [style]="{ width: '450px' }" />

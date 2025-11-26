@@ -1,0 +1,40 @@
+<p-toast></p-toast>
+
+<div class="card">
+
+    <h2>Registrar Notas</h2>
+
+    <!-- Selección de Aula -->
+    <h3>Seleccione un Aula</h3>
+
+    <p-select
+        [options]="aulas"
+        optionLabel="nombre"
+        [(ngModel)]="aulaSeleccionada"
+        placeholder="Seleccione un aula"
+        (onChange)="cargarEstudiantes()">
+    </p-select>
+
+    <br><br>
+
+    <!-- Selección de Estudiante -->
+    <h3>Seleccione un Estudiante</h3>
+
+    <p-select
+        [options]="estudiantes"
+        optionLabel="nombres"
+        [(ngModel)]="estudianteSeleccionado"
+        placeholder="Seleccione un estudiante"
+        [disabled]="!aulaSeleccionada">
+    </p-select>
+
+    <br><br>
+
+    <!-- Notas -->
+    <div *ngIf="estudianteSeleccionado">
+
+        <app-notas-crud [estudiante]="estudianteSeleccionado"></app-notas-crud>
+
+    </div>
+
+</div>

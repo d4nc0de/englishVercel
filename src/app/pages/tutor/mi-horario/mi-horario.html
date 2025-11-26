@@ -1,0 +1,18 @@
+<p-select
+*ngIf="!sessionIsTutor()"
+[options]="tutores"
+[(ngModel)]="tutorPersona" (ngModelChange)="onTutorChange($event)"
+optionLabel="nombres"
+placeholder="Selecciona un Tutor"
+class="w-full md:w-56 mb-5" [showClear]="true" fluid
+/>
+<p-select
+[options]="aulas"
+[(ngModel)]="aulaSelected" (ngModelChange)="onAulaChange()"
+optionLabel="nombre"
+placeholder="Selecciona un Aula"
+class="w-full md:w-56 mb-5" [showClear]="true" fluid />
+
+<div class="card" *ngIf="horarioCompleto !== null">
+    <app-calendario-viewer [horarioCompleto]="horarioCompleto"></app-calendario-viewer>
+</div>

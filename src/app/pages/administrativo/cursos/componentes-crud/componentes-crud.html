@@ -1,0 +1,44 @@
+<p-toast></p-toast>
+
+<div class="card">
+    <h3>Componentes de Notas</h3>
+    <p-table [value]="components" [tableStyle]="{ 'min-width': '50rem' }">
+        <ng-template #header>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Porcentaje</th>
+                <th>¿Activo?</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-componente>
+            <tr>
+                <td>{{ componente.componentenotaid }}</td>
+                <td>
+                    <input type="text" pInputText [(ngModel)]="componente.nombre" />
+                    <small class="flex text-red-500 ml-5" *ngIf="componente.nombre.trim().length === 0">El nombre es obligatorio.</small>
+                </td>
+                <td>
+                    <p-inputnumber mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2"  [min]="0.01" [max]="100" [(ngModel)]="componente.porcentaje" />
+                    <small class="flex text-red-500 ml-5" *ngIf="!componente.porcentaje">El porcentaje es obligatorio.</small>
+                </td>
+                <td><p-checkbox [(ngModel)]="componente.activo" [binary]="true" /></td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+<div class="card">
+    <div>
+        <p-floatlabel variant="on">
+            <p-inputnumber
+                id="numberOfComponents"
+                [(ngModel)]="numberOfComponents"
+                autocomplete="off"
+                (ngModelChange)="onChangeNumber($event)"
+            />
+            <label for="numberOfComponents">Número de Componentes</label>
+        </p-floatlabel>
+        <h5>Porcentaje Total: {{ getTotalPercentage() }}%</h5>
+    </div>
+    <p-button label="Guardar Cambios" icon="pi pi-save" severity="success" [disabled]="!canSave()" (onClick)="saveChanges()" />
+</div>

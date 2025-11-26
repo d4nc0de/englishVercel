@@ -1,0 +1,23 @@
+<div class="card">
+
+  <h2>Tomar Asistencia</h2>
+
+  <h3>Seleccione un Aula</h3>
+
+  <p-select
+      [options]="aulas"
+      optionLabel="nombre"
+      placeholder="Seleccione un aula"
+      [(ngModel)]="aulaSeleccionada">
+  </p-select>
+
+  <br><br>
+
+  <button
+      pButton
+      label="Continuar"
+      class="p-button-success"
+      [disabled]="!aulaSeleccionada"
+      (click)="continuar()">
+  </button>
+</div>

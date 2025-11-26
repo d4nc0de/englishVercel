@@ -1,0 +1,187 @@
+<p-toast></p-toast>
+
+<div class="card">
+
+    <h2>Tomar Asistencia</h2>
+
+    <!-- INFO AULA -->
+    <div *ngIf="aulaSeleccionada" class="info-box mb-4">
+        <p><b>Aula:</b> {{ aulaSeleccionada.nombre }}</p>
+        <p><b>Grado:</b> {{ aulaSeleccionada.grado }}</p>
+        <p><b>Institucion:</b> {{ institucion?.nombre }}</p>
+        <p><b>Programa:</b> {{ getPrograma(aulaSeleccionada.programaid) }}</p>
+    </div>
+
+    <!-- HORARIO -->
+    <h3>Seleccionar Horario</h3>
+
+    <p-select
+        [(ngModel)]="detalleSeleccionado"
+        [options]="detalles"
+        optionLabel="label"
+        (ngModelChange)="onHorarioChange()"
+        placeholder="Seleccione un horario"
+        [virtualScroll]="true"
+        [virtualScrollItemSize]="34"
+        class="w-full">
+    </p-select>
+
+    <br>
+
+    <!-- FECHA -->
+    <h3>Fecha de clase</h3>
+
+    <p-datepicker #dp
+        [(ngModel)]="fechaClase"
+        (ngModelChange)="onFechaChange()"
+        [disabled]="!detalleSeleccionado"
+    />    
+
+    <br><br>
+
+    <!-- ¿SE DICTÓ? -->
+    <h3>¿La clase se dictó?</h3>
+
+    <div class="flex gap-3">
+        <p-radioButton name="dictada" value="si" [(ngModel)]="claseDictada"></p-radioButton>
+        <label>Sí, se dictó</label>
+
+        <p-radioButton name="dictada" value="no" [(ngModel)]="claseDictada"></p-radioButton>
+        <label>No se dictó</label>
+    </div>
+
+    <br>
+
+    <!-- SI SE DICTÓ -->
+    <div *ngIf="claseDictada === 'si'">
+
+        <button 
+            pButton 
+            type="button" 
+            label="Cargar lista de estudiantes" 
+            class="p-button-success" 
+            (click)="cargarListaEstudiantes()">
+        </button>
+
+        <br><br>
+
+        <div *ngIf="mostrarTablaAsistencia">
+
+            <h3>Lista de estudiantes</h3>
+
+            <p-table 
+                [value]="asistenciaUI"
+                [paginator]="false"
+                [tableStyle]="{ 'min-width': '50rem' }"
+                sortField="nombres"
+                sortMode="single">
+
+                <!-- HEADER -->
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="numero_documento">
+                            Documento
+                            <p-sortIcon field="numero_documento"></p-sortIcon>
+                        </th>
+
+                        <th pSortableColumn="nombres">
+                            Nombres
+                            <p-sortIcon field="nombres"></p-sortIcon>
+                        </th>
+
+                        <th pSortableColumn="apellidos">
+                            Apellidos
+                            <p-sortIcon field="apellidos"></p-sortIcon>
+                        </th>
+
+                        <th>Asistencia</th>
+                    </tr>
+                </ng-template>
+
+                <!-- BODY -->
+                <ng-template pTemplate="body" let-est>
+                    <tr>
+                        <td>{{ est.numero_documento }}</td>
+
+                        <td>{{ est.nombres }}</td>
+
+                        <td>{{ est.apellidos }}</td>
+
+                        <td>
+
+                            <!-- TEXTO FIJO -->
+                            <span *ngIf="!modoEdicion">
+                                {{ est.asistio ? 'Asistió' : 'No asistió' }}
+                            </span>
+
+                            <!-- CHECKBOX SOLO EN EDICIÓN -->
+                            <p-checkbox 
+                                *ngIf="modoEdicion"
+                                [(ngModel)]="est.asistio"
+                                [binary]="true">
+                            </p-checkbox>
+
+                        </td>
+                    </tr>
+                </ng-template>
+
+            </p-table>
+
+            <br>
+
+            <div class="flex gap-3">
+
+                <!-- EDITAR -->
+                <button 
+                    *ngIf="!modoEdicion"
+                    pButton 
+                    type="button" 
+                    label="Editar asistencia" 
+                    class="p-button-warning"
+                    (click)="activarEdicion()">
+                </button>
+
+                <!-- GUARDAR -->
+                <button 
+                    *ngIf="modoEdicion"
+                    pButton 
+                    type="button" 
+                    label="Guardar asistencia" 
+                    class="p-button-primary"
+                    (click)="guardarAsistenciaFinal()">
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- SI NO SE DICTÓ -->
+<div *ngIf="claseDictada === 'no'">
+
+    <h3>Motivo de no clase</h3>
+
+    <p-select
+        [options]="motivos"
+        optionLabel="descripcion"
+        optionValue="motivonoclaseid"
+        placeholder="Seleccione un motivo"
+        [(ngModel)]="motivoSeleccionado"
+        class="w-full">
+    </p-select>
+
+    <br>
+
+    <button 
+        pButton 
+        type="button" 
+        label="Registrar motivo" 
+        class="p-button-danger" 
+        (click)="registrarMotivo()">
+    </button>
+
+</div>
+
+
+</div>

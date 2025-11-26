@@ -1,0 +1,160 @@
+<p-toast></p-toast>
+
+<div>
+<p-select [filter]="true" filterBy="label" [options]="allHorarios" [(ngModel)]="selectedHorarioCompleto" optionLabel="label" [virtualScroll]="true" placeholder="Seleccione una jornada" class="w-full md:w-56" fluid></p-select>
+
+</div>
+<div class="card mt-4">
+    <div class="font-semibold text-xl mb-4">Horarios de la Jornada</div>
+    <p-table [value]="selectedHorarioCompleto?.horarios ?? []" dataKey="horario.horarioid" [tableStyle]="{ 'min-width': '60rem' }" [expandedRowKeys]="expandedRows">
+        <ng-template #caption>
+            <button pButton icon="pi pi-fw {{ isExpanded ? 'pi-minus' : 'pi-plus' }}" label="{{ isExpanded ? 'Colapsar todos' : 'Expandir todos' }}" (click)="expandAll()"></button>
+            <div class="flex table-header"></div>
+        </ng-template>
+        <ng-template #header>
+            <tr>
+                <th style="width: 5rem"></th>
+                <th>ID Horario</th>
+                <th>Minutos por unidad</th>
+                <th>Descripción</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-completo let-expanded="expanded">
+            <tr>
+                <td>
+                    <p-button type="button" pRipple [pRowToggler]="completo" [text]="true" [rounded]="true" [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                </td>
+                <td>{{ completo.horario.horarioid }}</td>
+                <td>{{ completo.horario.minutos_por_unidad }}</td>
+                <td>{{ completo.horario.descripcion ?? "Sin descripción" }}</td>
+            </tr>
+        </ng-template>
+        <ng-template #expandedrow let-completo>
+            <tr>
+                <td colspan="7">
+                    <div class="p-4">
+                        <h5>Detalles de Horario {{completo.horario.horarioid}}</h5>
+                        <p-table [value]="completo.detalles" dataKey="horariodetalleid">
+                            <ng-template #header>
+                                <tr>
+                                    <th>ID Detalle</th>
+                                    <th>Día semana</th>
+                                    <th>Hora inicio</th>
+                                    <th>Hora fin</th>
+                                    <th>Unidades</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template #body let-detalle>
+                                <tr>
+                                    <td>{{ detalle.horariodetalleid }}</td>
+                                    <td>{{ humanDay(detalle.dia_semana) }}</td>
+                                    <td>{{ detalle.hora_inicio }}</td>
+                                    <td>{{ detalle.hora_fin }}</td>
+                                    <td>{{ detalle.unidades }}</td>
+                                </tr>
+                            </ng-template>
+                            <ng-template #emptymessage>
+                                <tr>
+                                    <td colspan="6">Aún no hay detalles para este horario.</td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+
+<div class="card">
+    <div>
+        <label for="horarioReason" class="block font-bold mb-3">Razón de modificación de horario</label>
+        <input min="1" pInputText id="horarioReason" [(ngModel)]="horarioChangeReason" autofocus fluid />
+    </div>
+</div>
+
+<div class="card">
+    <div class="font-semibold text-xl mb-4">Administrar Horarios de la Jornada</div>
+    <div class="flex flex-wrap gap-6 mb-4">
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="jornadaid">ID Jornada</label>
+            <input pInputText id="jornadaid" type="number" [disabled]="true" [value]="selectedHorarioCompleto?.jornada?.jornadaid" required/>
+        </div>
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="horarioid">ID Horario</label>
+            <p-select
+            [filter]="true" filterBy="horario.horarioid"
+            [(ngModel)]="adminIdHorario" [showClear]="true" [virtualScroll]="true" name="horarioid"
+            optionValue="horario.horarioid" optionLabel="horario.horarioid"
+            [options]="selectedHorarioCompleto?.horarios" placeholder="Selecciona un Horario"
+
+            (ngModelChange)="loadHorarioInfo()"
+
+            class="w-full md:w-56" fluid [disabled]="!selectedHorarioCompleto"
+            />
+        </div>
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="minutos">Minutos por unidad</label>
+            <p-select [(ngModel)]="horarioMinutosSelected" name="minutos" [options]="minutos_por_unidad" placeholder="Selecciona una duración" class="w-full md:w-56" fluid required></p-select>
+        </div>
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="descripcion">Descripción del Horario</label>
+            <input pInputText id="descripcion" type="text" [(ngModel)]="horarioDescripcion" name="descripcion"/>
+        </div>
+    </div>
+    <p-button class='mr-4' (onClick)="manageHorario()" [disabled]="!horarioValid()">Guardar</p-button>
+    <p-button severity="danger" (onClick)="deleteHorario()" [disabled]="!horarioValid()">Eliminar</p-button>
+</div>
+
+<div class="card">
+    <div class="font-semibold text-xl mb-4">Administrar un Detalle</div>
+    <div class="flex flex-wrap gap-6 mb-4">
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="horarioid">ID Horario</label>
+            <p-select
+            [(ngModel)]="detalleIdHorario"
+            (ngModelChange)="updateAvailableDetalles()"
+            [virtualScroll]="true"
+            name="horarioid"
+            optionValue="horario.horarioid"
+            optionLabel="horario.horarioid"
+            [filter]="true" filterBy="horario.horarioid"
+            [options]="selectedHorarioCompleto?.horarios"
+            placeholder="Selecciona un Horario"
+            class="w-full md:w-56" fluid required [disabled]="!selectedHorarioCompleto"
+            />
+        </div>
+
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="horarioid">ID Detalle</label>
+            <p-select
+            [(ngModel)]="adminIdDetalle" [showClear]="true" [virtualScroll]="true" name="horariodetalleid"
+            optionValue="horariodetalleid" optionLabel="horariodetalleid"
+            [filter]="true" filterBy="horariodetalleid"
+            [options]="selectedDetalles" placeholder="Selecciona un Detalle"
+            
+            (ngModelChange)="loadDetalleInfo()"
+
+            class="w-full md:w-56" fluid [disabled]="!selectedHorarioCompleto"
+            />
+        </div>
+
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="dia_semana">Día de la semana</label>
+            <p-select [(ngModel)]="detalleDiaSemana" name="dia_semana" optionValue="value" [options]="diasSemana" placeholder="Selecciona un día" class="w-full md:w-56" fluid required></p-select>
+        </div>
+        
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="hora_inicio">Hora inicio</label>
+            <input pInputText id="hora_inicio" type="text" [(ngModel)]="detalleHoraInicio" name="hora_inicio" required/>
+        </div>
+        <div class="flex flex-col grow basis-0 gap-2">
+            <label for="unidades">Unidades</label>
+            <p-inputnumber [min]="1" [max]="100" [(ngModel)]="detalleUnidades"/>
+        </div>
+        
+    </div>
+    <p-button class="mr-4" (onClick)="manageDetalle()" [disabled]="!detalleValid()">Guardar</p-button>
+    <p-button severity="danger" (onClick)="deleteDetalle()" [disabled]="!detalleValidDelete()">Eliminar</p-button>
+</div>

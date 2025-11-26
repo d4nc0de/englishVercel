@@ -1,0 +1,99 @@
+<p-toast></p-toast>
+
+<p-toolbar styleClass="mb-6">
+    <ng-template #start>
+        <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+        <p-button severity="secondary" label="Delete" icon="pi pi-trash" outlined (onClick)="deleteSelectedElements()"
+            [disabled]="!selectedElements || !selectedElements.length" />
+    </ng-template>
+
+    <ng-template #end>
+        <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+</p-toolbar>
+
+<div class="card">
+<p-table
+    #dt
+    [value]="elements()"
+    [rows]="10"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['nombre', 'codigo']"
+    [tableStyle]="{ 'min-width': '75rem' }" [(selection)]="selectedElements" [rowHover]="true" dataKey="institucionid"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} {{pluralName.toLowerCase()}}" [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[10, 20, 30]"
+>
+    <ng-template #caption>
+        <div class="flex items-center justify-between">
+            <h5 class="m-0">{{elementAdminName}}</h5>
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." />
+            </p-iconfield>
+        </div>
+    </ng-template>
+    <ng-template #header>
+        <tr>
+            <th style="width: 3rem">
+                <p-tableHeaderCheckbox />
+            </th>
+            <th style="max-width: 5rem">ID</th>
+            <th pSortableColumn="codigo" style="min-width:16rem">
+                Código
+                <p-sortIcon field="codigo" />
+            </th>
+            <th pSortableColumn="nombre" style="min-width:16rem">
+                Nombre
+                <p-sortIcon field="nombre" />
+            </th>
+            <th>Direccion</th>
+            <th style="min-width: 12rem"></th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-element>
+        <tr>
+            <td style="width: 3rem">
+                <p-tableCheckbox [value]="element" />
+            </td>
+            <td style="max-width: 5rem">{{ element.institucionid }}</td>
+            <td style="min-width: 16rem">{{ element.codigo }}</td>
+            <td style="min-width: 16rem">{{ element.nombre }}</td>
+            <td>{{ element.direccion }}</td>
+            <td>
+                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true"
+                    (click)="editElement(element)" />
+                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                    (click)="deleteElement(element)" />
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+</div>
+<p-dialog [(visible)]="dialog" [style]="{ width: '450px' }" header="Detalles de {{singularName}}" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-6">            
+            <div>
+                <label for="codigo" class="block font-bold mb-3">Codigo</label>
+                <input type="text" pInputText id="codigo" [(ngModel)]="element.codigo" required autofocus fluid />
+                <small class="text-red-500" *ngIf="submitted && !element.codigo">El código es obligatorio.</small>
+            </div>
+            <div>
+                <label for="nombre" class="block font-bold mb-3">Nombre</label>
+                <input type="text" pInputText id="nombre" [(ngModel)]="element.nombre" required autofocus fluid />
+                <small class="text-red-500" *ngIf="submitted && !element.nombre">El nombre es obligatorio.</small>
+            </div>
+            <div>
+                <label for="direccion" class="block font-bold mb-3">Dirección</label>
+                <input type="text" pInputText id="direccion" [(ngModel)]="element.direccion" autofocus fluid />
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+        <p-button label="Save" icon="pi pi-check" (click)="saveElement()" />
+    </ng-template>
+</p-dialog>
+
+<p-confirmdialog [style]="{ width: '450px' }" />

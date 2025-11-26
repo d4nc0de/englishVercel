@@ -1,0 +1,208 @@
+<p-toast></p-toast>
+
+<p-toolbar styleClass="mb-6">
+    <ng-template #start>
+        <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+        <p-button
+            severity="secondary"
+            label="Delete"
+            icon="pi pi-trash"
+            outlined
+            (onClick)="deleteSelectedElements()"
+            [disabled]="!selectedElements || !selectedElements.length"
+        />
+    </ng-template>
+
+    <ng-template #end>
+        <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+</p-toolbar>
+
+<div class="card">
+<p-table
+    #dt
+    [value]="elements()"
+    [rows]="10"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['nombres', 'apellidos', 'correo', 'numero_documento']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedElements"
+    [rowHover]="true"
+    dataKey="personaid"
+    (onHeaderCheckboxToggle)="onHeaderToggle($event)"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} {{ pluralName.toLowerCase() }}"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[10, 20, 30]"
+>
+    <ng-template #caption>
+        <div class="flex items-center justify-between">
+            <h5 class="m-0">{{ elementAdminName }}</h5>
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." />
+            </p-iconfield>
+        </div>
+    </ng-template>
+
+    <ng-template #header>
+        <tr>
+            <th style="width: 3rem">
+                <p-tableHeaderCheckbox />
+            </th>
+            <th style="max-width: 5rem">ID</th>
+            <th pSortableColumn="nombres" style="min-width:16rem">
+                Nombres
+                <p-sortIcon field="nombres" />
+            </th>
+            <th pSortableColumn="apellidos" style="min-width:16rem">
+                Apellidos
+                <p-sortIcon field="apellidos" />
+            </th>
+            <th>Tipo de documento</th>
+            <th>Número de documento</th>
+            <!-- <th>Correo</th> -->
+            <th>Teléfono</th>
+            <th>Rol</th>
+            <th style="min-width: 12rem"></th>
+        </tr>
+    </ng-template>
+
+    <ng-template #body let-element>
+        <tr>
+            <td style="width: 3rem">
+                <p-tableCheckbox [value]="element" [disabled]="isSame(element)" />
+            </td>
+            <td style="max-width: 5rem">{{ element.personaid }}</td>
+            <td style="min-width: 16rem">{{ element.nombres }}</td>
+            <td style="min-width: 16rem">{{ element.apellidos }}</td>
+            <!-- aquí usamos tipodocumentoid -->
+            <td>{{ tipoDocumento(element.tipodocumentoid) }}</td>
+            <td>{{ element.numero_documento }}</td>
+            <!-- <td>{{ element.correo }}</td> -->
+            <td>{{ element.telefono || 'No presenta' }}</td>
+            <td>{{ roleName(element.rolid) }}</td>
+            <td>
+                <p-button
+                    icon="pi pi-pencil"
+                    class="mr-2"
+                    [rounded]="true"
+                    [outlined]="true"
+                    (click)="editElement(element)"
+                    [disabled]="isSame(element)"
+                />
+                <p-button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [rounded]="true"
+                    [outlined]="true"
+                    (click)="deleteElement(element)"
+                    [disabled]="isSame(element)"
+                />
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+
+<p-dialog [(visible)]="dialog" [style]="{ width: '450px' }" header="Detalles de {{ singularName }}" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-6 min-h-150">
+            <div>
+                <label for="name" class="block font-bold mb-3">Nombres</label>
+                <input
+                    type="text"
+                    pInputText
+                    id="name"
+                    [(ngModel)]="element.nombres"
+                    required
+                    autofocus
+                    fluid
+                />
+                <small class="text-red-500" *ngIf="submitted && !element.nombres">
+                    Los nombres son obligatorios.
+                </small>
+            </div>
+
+            <div>
+                <label for="apellidos" class="block font-bold mb-3">Apellidos</label>
+                <input
+                    type="text"
+                    pInputText
+                    id="apellidos"
+                    [(ngModel)]="element.apellidos"
+                    required
+                    fluid
+                />
+                <small class="text-red-500" *ngIf="submitted && !element.apellidos">
+                    Los apellidos son obligatorios.
+                </small>
+            </div>
+
+            <div>
+                <label for="roleId" class="block font-bold mb-3">Rol</label>
+                <p-select
+                    [(ngModel)]="element.rolid"
+                    inputId="roleId"
+                    [options]="availableRoles"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Selecciona una opción"
+                    fluid
+                    [disabled]="!canManageRole()"
+                />
+                <small
+                    class="text-red-500"
+                    *ngIf="submitted && (element.rolid === null || element.rolid === undefined)"
+                >
+                    El rol es obligatorio.
+                </small>
+            </div>
+
+            <div>
+                <label for="docType" class="block font-bold mb-3">Tipo de Documento</label>
+                <p-select
+                    [(ngModel)]="element.tipodocumentoid"
+                    inputId="docType"
+                    [options]="documentTypes"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Selecciona una opción"
+                    fluid
+                />
+                <small
+                    class="text-red-500"
+                    *ngIf="submitted && (element.tipodocumentoid === null || element.tipodocumentoid === undefined)"
+                >
+                    El tipo de documento es obligatorio.
+                </small>
+            </div>
+
+            <div>
+                <label for="numero_documento" class="block font-bold mb-3">Documento</label>
+                <input
+                    #docCtrl="ngModel"
+                    name="numero_documento"
+                    type="tel"
+                    pattern="[0-9]{7,12}"
+                    pInputText
+                    id="numero_documento"
+                    [(ngModel)]="element.numero_documento"
+                    fluid
+                />
+                <small class="text-red-500" *ngIf="submitted && !element.numero_documento">
+                    El número de documento es obligatorio.
+                </small>
+                <small class="text-red-500" *ngIf="submitted && docCtrl.invalid">
+                    Formato inválido.
+                </small>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+        <p-button label="Save" icon="pi pi-check" (click)="savePersona(docCtrl)" />
+    </ng-template>
+</p-dialog>
+
+<p-confirmdialog [style]="{ width: '450px' }" />
